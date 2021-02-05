@@ -7,7 +7,7 @@ import yfinance as yf
 import numpy as np
 import datetime as dt
 
-def foo(arg):
+def get_diff(ref_tick):
 
 
     #algorithm parameters
@@ -23,25 +23,29 @@ def foo(arg):
     td_day_of_week = dt.date(td_year,td_month,td_day).weekday()
 
 
-    # Get the data of target stock (AAPL)
+    # Get the data of target stock
+    # TODO  put in error handling
     tick = yf.Ticker('AAPL')
     target = tick.history("1y")
 
-    # Get data of reference (DIS - disney)
-    tick = yf.Ticker(arg)
+    # Get data of reference
+    # TODO put in error handling
+    tick = yf.Ticker(ref_tick)
     reference = tick.history("15y")
 
 
     #Index(['Open', 'High', 'Low', 'Close', 'Volume', 'Dividends', 'Stock Splits'], dtype='object')
 
-    # manipulate target & reference to desired format
+    # normalize target high & low values to percent of opening values
     target['percent_high'] = np.where(target['High'] < 1, target['High'], target['High']/target['Open'])
     target['percent_low']= np.where(target['Low'] < 1, target['Low'], target['Low']/target['Open'])
     target['percent_close']= np.where(target['Close'] < 1, target['Close'], target['Close']/target['Open'])
+    # create new columns for 'day of week' and 'week of year'
     target['Date'] = target.index
     target['day_of_week'] = target['Date'].apply(lambda x: x.weekday())
     target['week_num']=target['Date'].dt.isocalendar().week
 
+    # do same as above but for target
     reference['percent_high'] = np.where(reference['High'] < 1, reference['High'], reference['High']/reference['Open'])
     reference['percent_low']= np.where(reference['Low'] < 1, reference['Low'], reference['Low']/reference['Open'])
     reference['percent_close']= np.where(reference['Close'] < 1, reference['Close'], reference['Close']/reference['Open'])
@@ -62,19 +66,20 @@ def foo(arg):
 
     tar_dat_arr_ph = tar_dat['percent_high'].to_numpy()
     tar_dat_arr_pl = tar_dat['percent_low'].to_numpy()
-    tar_dat_arr_pc = tar_dat['percent_low'].to_numpy()
+    tar_dat_arr_pc = tar_dat['percent_close'].to_numpy()
 
-    diff = np.ones((len(ref_end_i),3))
+    diff = np.ones((len(ref_end_i),4))
     n=0
     for i in ref_end_i:
         ref_start_i = i - trade_days_prior
         ref_dat = reference.iloc[ref_start_i:i, :]
+        diff[n,0] = ref_dat.iloc[0]['Date'].year
         ref_dat_arr = ref_dat['percent_high'].to_numpy()
-        diff[n,0] = sum(abs(ref_dat_arr - tar_dat_arr_ph))
+        diff[n,1] = sum(abs(ref_dat_arr - tar_dat_arr_ph))
         ref_dat_arr = ref_dat['percent_low'].to_numpy()
-        diff[n,1] = sum(abs(ref_dat_arr - tar_dat_arr_pl))
+        diff[n,2] = sum(abs(ref_dat_arr - tar_dat_arr_pl))
         ref_dat_arr = ref_dat['percent_close'].to_numpy()
-        diff[n,2] = sum(abs(ref_dat_arr - tar_dat_arr_pc))
+        diff[n,3] = sum(abs(ref_dat_arr - tar_dat_arr_pc))
         n=n+1
 
     return diff
