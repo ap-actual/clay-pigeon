@@ -4,7 +4,9 @@ from progressbar import ProgressBar
 
 prgbar = ProgressBar()  # initialize progress bar
 
-# define weights of analysis (these MUST add up to 1
+# THIS IS FOR BRITTANY'S BRANCH
+
+# define weights of analysis (these MUST add up to 1)
 w_pl = 0.33
 w_ph = 0.33
 w_pc = 0.34
@@ -35,4 +37,4 @@ masked_diff = np.ma.masked_equal(diff[:,4,:], 0.0, copy=False)
 print(np.amin(masked_diff))
 print(np.where(masked_diff == np.amin(masked_diff)))
 print(diff[7, 4, 4])
-print(diff[7,0,4])
+print(diff[7, 0, 4])
