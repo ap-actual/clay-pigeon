@@ -22,7 +22,7 @@ def get_diff(ref_tick, tar_tick, trade_days_prior, td_year, td_month, td_day):
     # Get data of reference
     # TODO put in error handling
     tick = yf.Ticker(ref_tick)
-    reference = tick.history("10y")
+    reference = tick.history("15y")
 
 
     #Index(['Open', 'High', 'Low', 'Close', 'Volume', 'Dividends', 'Stock Splits'], dtype='object')
@@ -50,7 +50,6 @@ def get_diff(ref_tick, tar_tick, trade_days_prior, td_year, td_month, td_day):
     # find nth day prior to analysis of target
     ref_end_ii = np.where(np.logical_and(reference['day_of_week'] == td_day_of_week-1, reference['week_num'] == td_week))
     ref_end_i = ref_end_ii[0][1:]
-    print(ref_end_i)
     tar_end_ii = np.where(np.logical_and(target['day_of_week'] == td_day_of_week-1, target['week_num'] == td_week))
     tar_end_i = tar_end_ii[0]
     tar_start_i = tar_end_i - trade_days_prior
