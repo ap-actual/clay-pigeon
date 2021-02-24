@@ -4,7 +4,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 
 
-def plot_data(ref_tick, target_tick, trade_days_prior, td_year, td_month, td_day, rf_year):
+def plot_data(ref_tick, target_tick, trade_days_prior, td_year, td_month, td_day, rf_year, diff_min):
 
     # Get day of week & week of year
     td_week = dt.date(td_year, td_month, td_day).isocalendar()[1]
@@ -72,10 +72,39 @@ def plot_data(ref_tick, target_tick, trade_days_prior, td_year, td_month, td_day
 
     t1 = list(range(1, int(tar_end_i - tar_start_i+1)))
     t2 = list(range(1, int(ref_end_i - ref_start_i + 1)))
-    plt.plot(t1, tar_dat_arr_pc)
-    plt.plot(t2, ref_dat_arr_pc)
-    plt.minorticks_on()
-    plt.grid(which='major')
-    plt.legend([target_tick, ref_tick + ' - ' + str(rf_year)])
-    #plt.show()
-    return predicted_percent_close
+
+    # REMOVE OR COMMENT OUT IF NOT BENCHMARKING
+    t3 = list(range(int(ref_end_i - ref_start_i), int(ref_end_i - ref_start_i + 1)))
+    tick = yf.Ticker(target_tick)
+    target = tick.history(period='3d', start=dt.datetime(year=int(td_year), month=td_month, day=td_day))
+    target['percent_close'] = np.where(target['Close'] < 1, target['Close'], target['Close'] / target['Open'])
+    act_dat_arr_pc = np.array([target['percent_close'].iloc[1], target['percent_close'].iloc[0]])
+
+    sendit = np.array([predicted_percent_close, predicted_percent_high])
+
+    if diff_min < 0.04:
+
+        fpath = "./plots/"
+        fname = str(td_year)+str(td_month)+str(td_day)+str(target_tick)+'_vs_'+str(ref_tick)+'-'+str(rf_year)
+
+        t1 = list(range(1, int(tar_end_i - tar_start_i + 1)))
+        t2 = list(range(1, int(ref_end_i - ref_start_i + 1)))
+
+        # REMOVE OR COMMENT OUT IF NOT BENCHMARKING
+        t3 = np.array([int(ref_end_i - ref_start_i -1 ), int(ref_end_i - ref_start_i)])
+        tick = yf.Ticker(target_tick)
+        target_act = tick.history(period='1d', start=dt.datetime(year=int(td_year), month=td_month, day=td_day))
+        target_act['percent_close'] = np.where(target_act['Close'] < 1, target_act['Close'], target_act['Close'] / target_act['Open'])
+        act_dat_arr_pc = np.array([tar_dat_arr_pc[len(tar_dat_arr_pc)-1], target_act['percent_close'].iloc[0]])
+        plt.clf()
+        plt.plot(t1, tar_dat_arr_pc)
+        plt.plot(t2, ref_dat_arr_pc)
+        plt.plot(t3, act_dat_arr_pc)
+        plt.minorticks_on()
+        plt.grid(which='major')
+        plt.legend([target_tick, ref_tick + ' - ' + str(rf_year), 'actual close'])
+        ax = plt.gca()
+        ax.set_aspect(50)
+        plt.savefig(str(fpath+fname+'.png'))
+
+    return sendit

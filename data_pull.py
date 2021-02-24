@@ -7,7 +7,7 @@ import yfinance as yf
 import numpy as np
 import datetime as dt
 
-def get_diff(ref_tick, tar_tick, trade_days_prior, td_year, td_month, td_day):
+def get_diff(reference, tar_tick, trade_days_prior, td_year, td_month, td_day):
 
     # Get day of week & week of year
     td_week = dt.date(td_year, td_month, td_day).isocalendar()[1]
@@ -18,11 +18,6 @@ def get_diff(ref_tick, tar_tick, trade_days_prior, td_year, td_month, td_day):
     # TODO  put in error handling
     tick = yf.Ticker(tar_tick)
     target = tick.history("1y")
-
-    # Get data of reference
-    # TODO put in error handling
-    tick = yf.Ticker(ref_tick)
-    reference = tick.history("15y")
 
 
     #Index(['Open', 'High', 'Low', 'Close', 'Volume', 'Dividends', 'Stock Splits'], dtype='object')
@@ -65,13 +60,13 @@ def get_diff(ref_tick, tar_tick, trade_days_prior, td_year, td_month, td_day):
     for i in ref_end_i:
         ref_start_i = i - trade_days_prior
         ref_dat = reference.iloc[ref_start_i:i, :]
-        diff[n,0] = ref_dat.iloc[0]['Date'].year
+        diff[n, 0] = ref_dat.iloc[0]['Date'].year
         ref_dat_arr = ref_dat['percent_high'].to_numpy()
-        diff[n,1] = sum(abs(ref_dat_arr - tar_dat_arr_ph))
+        diff[n, 1] = sum(abs(ref_dat_arr - tar_dat_arr_ph))
         ref_dat_arr = ref_dat['percent_low'].to_numpy()
-        diff[n,2] = sum(abs(ref_dat_arr - tar_dat_arr_pl))
+        diff[n, 2] = sum(abs(ref_dat_arr - tar_dat_arr_pl))
         ref_dat_arr = ref_dat['percent_close'].to_numpy()
-        diff[n,3] = sum(abs(ref_dat_arr - tar_dat_arr_pc))
+        diff[n, 3] = sum(abs(ref_dat_arr - tar_dat_arr_pc))
         n = n+1
 
     return diff
