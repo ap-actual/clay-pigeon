@@ -2,40 +2,28 @@ import yfinance as yf
 import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
+from normalize_tick import normalize_tick
 
 
-def plot_data(ref_tick, target_tick, trade_days_prior, td_year, td_month, td_day, rf_year, diff_min):
+def plot_data(ref_tick, target, target_tick, trade_days_prior, td_year, td_month, td_day, rf_year, diff_min, benchmark):
 
     # Get day of week & week of year
     td_week = dt.date(td_year, td_month, td_day).isocalendar()[1]
     td_day_of_week = dt.date(td_year,td_month,td_day).weekday()
 
     # Get the data of target stock
-    # TODO  put in error handling
-    tick = yf.Ticker(target_tick)
-    target = tick.history("1y")
-
+    # TODO have this done before loop is called
+    #tick = yf.Ticker(target_tick)
+    #target = tick.history("1y")
+    #target = normalize_tick(target)
+    print(target)
     # Get data of reference
     # TODO put in error handling
     tick = yf.Ticker(ref_tick)
     reference = tick.history(start=dt.datetime(year=int(rf_year-1), month=td_month, day=td_day),
                              end=dt.datetime(year=int(rf_year), month=td_month, day=td_day+5))
 
-    # normalize target high & low values to percent of opening values, create new columns for 'day of week' and 'week of year'
-    target['percent_high'] = np.where(target['High'] < 1, target['High'], target['High']/target['Open'])
-    target['percent_low']= np.where(target['Low'] < 1, target['Low'], target['Low']/target['Open'])
-    target['percent_close']= np.where(target['Close'] < 1, target['Close'], target['Close']/target['Open'])
-    target['Date'] = target.index
-    target['day_of_week'] = target['Date'].apply(lambda x: x.weekday())
-    target['week_num']=target['Date'].dt.isocalendar().week
-
-    # do same as above but for target
-    reference['percent_high'] = np.where(reference['High'] < 1, reference['High'], reference['High']/reference['Open'])
-    reference['percent_low']= np.where(reference['Low'] < 1, reference['Low'], reference['Low']/reference['Open'])
-    reference['percent_close']= np.where(reference['Close'] < 1, reference['Close'], reference['Close']/reference['Open'])
-    reference['Date'] = reference.index
-    reference['day_of_week'] = reference['Date'].apply(lambda x: x.weekday())
-    reference['week_num']=reference['Date'].dt.isocalendar().week
+    reference = normalize_tick(reference)
 
     # find nth day prior to analysis of target
     ref_end_ii = np.where(

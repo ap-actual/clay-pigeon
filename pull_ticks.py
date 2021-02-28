@@ -4,6 +4,7 @@ import datetime as dt
 import numpy as np
 import progressbar
 import yfinance as yf
+from normalize_tick import normalize_tick
 
 
 def pull_ticks(fname):
@@ -26,6 +27,6 @@ def pull_ticks(fname):
 
         tick = yf.Ticker(ref_tick)
         reference = tick.history("15y")
-        ref_collection[ref_tick] = reference
+        ref_collection[ref_tick] = normalize_tick(reference)
 
     return ref_collection
